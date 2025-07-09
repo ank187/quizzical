@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Stencil+One&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+  <title>Lexicon Clash - A1 Solo Prototype</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      text-align: center; 
+      background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+      padding: 20px; 
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+    
+    /* Shooting Stars Background Effect */
+    .night {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotateZ(45deg);
+      z-index: 1;
+      pointer-events: none;
+    }
+    
+    .shooting_star {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      height: 2px;
+      background: linear-gradient(-45deg, rgba(95, 145, 255, 1), rgba(0, 0, 255, 0));
+      border-radius: 999px;
+      filter: drop-shadow(0 0 6px rgba(105, 155, 255, 1));
+      animation: tail 3000ms ease-in-out infinite, shooting 3000ms ease-in-out infinite;
+    }
+    
+    .shooting_star::before {
+      content: '';
+      position: absolute;
+      top: calc(50% - 1px);
+      right: 0;
+      height: 2px;
+      background: linear-gradient(-45deg, rgba(0, 0, 255, 0), rgba(95, 145, 255, 1), rgba(0, 0, 255, 0));
+      transform: translateX(50%) rotateZ(45deg);
+      border-radius: 100%;
+      animation: shining 3000ms ease-in-out infinite;
+    }
+    
+    .shooting_star::after {
+      content: '';
+      position: absolute;
+      top: calc(50% - 1px);
+      right: 0;
+      height: 2px;
+      background: linear-gradient(-45deg, rgba(0, 0, 255, 0), rgba(95, 145, 255, 1), rgba(0, 0, 255, 0));
+      transform: translateX(50%) rotateZ(-45deg);
+      border-radius: 100%;
+      animation: shining 3000ms ease-in-out infinite;
+    }
+    
+    /* Individual shooting star positioning and delays */
+    .shooting_star:nth-child(1) { top: calc(50% - 150px); left: calc(50% - 200px); animation-delay: 1000ms; }
+    .shooting_star:nth-child(1)::before, .shooting_star:nth-child(1)::after { animation-delay: 1000ms; }
+    
+    .shooting_star:nth-child(2) { top: calc(50% - 50px); left: calc(50% - 100px); animation-delay: 2000ms; }
+    .shooting_star:nth-child(2)::before, .shooting_star:nth-child(2)::after { animation-delay: 2000ms; }
+    
+    .shooting_star:nth-child(3) { top: calc(50% + 100px); left: calc(50% - 300px); animation-delay: 500ms; }
+    .shooting_star:nth-child(3)::before, .shooting_star:nth-child(3)::after { animation-delay: 500ms; }
+    
+    .shooting_star:nth-child(4) { top: calc(50% - 200px); left: calc(50% - 50px); animation-delay: 1500ms; }
+    .shooting_star:nth-child(4)::before, .shooting_star:nth-child(4)::after { animation-delay: 1500ms; }
+    
+    .shooting_star:nth-child(5) { top: calc(50% + 50px); left: calc(50% - 250px); animation-delay: 3000ms; }
+    .shooting_star:nth-child(5)::before, .shooting_star:nth-child(5)::after { animation-delay: 3000ms; }
+    
+    .shooting_star:nth-child(6) { top: calc(50% - 100px); left: calc(50% - 150px); animation-delay: 2500ms; }
+    .shooting_star:nth-child(6)::before, .shooting_star:nth-child(6)::after { animation-delay: 2500ms; }
+    
+    .shooting_star:nth-child(7) { top: calc(50% + 150px); left: calc(50% - 80px); animation-delay: 800ms; }
+    .shooting_star:nth-child(7)::before, .shooting_star:nth-child(7)::after { animation-delay: 800ms; }
+    
+    .shooting_star:nth-child(8) { top: calc(50% - 80px); left: calc(50% - 220px); animation-delay: 1800ms; }
+    .shooting_star:nth-child(8)::before, .shooting_star:nth-child(8)::after { animation-delay: 1800ms; }
+    
+    .shooting_star:nth-child(9) { top: calc(50% + 80px); left: calc(50% - 120px); animation-delay: 600ms; }
+    .shooting_star:nth-child(9)::before, .shooting_star:nth-child(9)::after { animation-delay: 600ms; }
+    
+    .shooting_star:nth-child(10) { top: calc(50% - 180px); left: calc(50% - 280px); animation-delay: 2200ms; }
+    .shooting_star:nth-child(10)::before, .shooting_star:nth-child(10)::after { animation-delay: 2200ms; }
+    
+    @keyframes tail {
+      0% { width: 0; }
+      30% { width: 100px; }
+      100% { width: 0; }
+    }
+    
+    @keyframes shining {
+      0% { width: 0; }
+      50% { width: 30px; }
+      100% { width: 0; }
+    }
+    
+    @keyframes shooting {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(300px); }
+    }
+       
+    
+    
+    /* Game UI Styles */
+    .screen { display: none; }
+    #question, #feedback, #health, #progress { 
+      font-size: 18px; 
+      margin: 10px; 
+      color: white;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+      z-index: 10;
+      position: relative;
+	  font-weight: 900;
+	  font-variant-caps: unicase;
+    }
+	
+	#timer {
+		font-family: 'Orbitron', monospace, sans-serif; /* Use your chosen digital font, with fallbacks */
+		font-size: 48px; /* Significantly larger for prominent display */
+		margin: 20px;
+		color: #FFFF00; /* Yellow-orange color for the digital glow */
+	    text-shadow:
+		0 0 5px #FFFF00,   /* Inner glow */
+		0 0 10px #FFFF00,  /* Medium glow */
+		0 0 15px rgba(255, 255, 0, 0.7); /* Outer, softer glow */
+	    padding: 10px 20px;
+	    border-radius: 5px;
+	    display: inline-block; /* To make padding and background work correctly */
+	    letter-spacing: 2px; /* Space out the numbers a bit for readability */
+	    min-width: 120px; /* Ensure consistent width */
+	    text-align: center;
+	    z-index: 10;
+	    position: relative;
+	    box-shadow: 0 0 15px rgba(255, 255, 0, 0.0); /* Subtle outer box glow */
+	}
+    
+    .answer {
+	color: white;
+      margin: 10px;
+      padding: 15px;
+      background: #27351b;
+      border: 0px solid #ffffff;
+      border-radius: 8px;
+      width: 200px;
+      cursor: pointer;
+      display: inline-block;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      transition: all 0.3s ease;
+      z-index: 10;
+      position: relative;
+	  font-weight: 800;
+	  font-variant-caps: all-petite-caps;
+    }
+    
+    .answer:hover { 
+      background: rgba(224,247,250,0.98); 
+      color: #000;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+    }
+    
+    .game-controls {
+      margin: 20px 0;
+      z-index: 10;
+      position: relative;
+    }
+    
+    #pauseButton, #stopButton {
+      padding: 10px 20px;
+      font-size: 16px;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 0 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      transition: all 0.3s ease;
+      z-index: 10;
+      position: relative;
+    }
+    
+    #pauseButton {
+      background: #1b2735;
+    }
+    
+    #pauseButton:hover {
+      background: #f57c00;
+      transform: translateY(-2px);
+    }
+    
+    #stopButton {
+      background: #351b27;
+    }
+    
+    #stopButton:hover {
+      background: #d32f2f;
+      transform: translateY(-2px);
+    }
+    
+    .paused-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    .paused-content {
+      background: rgba(27, 39, 53, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      border: 1px solid rgba(95, 145, 255, 0.3);
+    }
+    
+    h1, h2 {
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+      z-index: 10;
+      position: relative;
+    }
+    
+    button {
+      z-index: 10;
+      position: relative;
+      padding: 12px 24px;
+      font-size: 16px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      transition: all 0.3s ease;
+    }
+    
+    button:hover {
+      background: #45a049;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+    }
+    
+    button:disabled {
+      background: #cccccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+	
+	#summaryStats {
+	  color: white;
+	  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  
+}
+
+	#health-bar-container {
+      width: 200px; /* Adjust width as needed */
+	  height: 20px; /* Adjust height as needed */
+	  background-color: #555; /* Dark background for empty health */
+	  border: 2px solid white;
+	  border-radius: 10px; /* Rounded corners */
+	  margin: 20px auto; /* Center the bar */
+	  overflow: hidden; /* Ensures the fill stays within bounds */
+	  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+	  position: relative; /* Needed for absolute positioning of fill if desired */
+	  z-index: 10;
+}
+
+	#health-bar-fill {
+	  width: 100%; /* Starts full */
+	  height: 100%;
+	  background-color: #4CAF50; /* Green color for health */
+	  transition: width 0.5s ease-out; /* Smooth transition for health changes */
+	  border-radius: 8px; /* Slightly smaller to fit container radius */
+}
+  </style>
+</head>
+<body>
+  
+  <!-- Shooting Stars Background -->
+  <div class="night">
+    <div class="shooting_star"></div>
+    <div class="shooting_star"></div>
+    <div class="shooting_star"></div>
+    <div class="shooting_star"></div>
+    <div class="shooting_star"></div>
+    <div class="shooting_star"></div>
+    <div class="shooting_star"></div>
+    <div class="shooting_star"></div>
+    <div class="shooting_star"></div>
+    <div class="shooting_star"></div>
+  </div>
+  
+  <div id="startScreen" class="screen" style="display: block;">
+    <h1>Lexicon Clash - A1 Solo Challenge</h1>
+    <br>
+    <button id="startButton" onclick="startGame()" disabled>Start Game</button>
+  </div>
+
+  <div id="gameScreen" class="screen">
+    <div class="game-controls">
+      <button id="pauseButton" onclick="togglePause()">Pause</button>
+      <button id="stopButton" onclick="stopGame()">Stop Game</button>
+    </div>
+    <div id="health-bar-container">
+  <div id="health-bar-fill"></div>
+</div>
+    <div id="question"></div>
+    <div id="answers"></div>
+    <div id="timer">25</div>
+    <div id="feedback"></div>
+  </div>
+
+  <div id="summaryScreen" class="screen" style="display:none;">
+    <h2>Game Summary</h2>
+    <div id="summaryStats"></div>
+    <button onclick="startGame()">Play Again</button>
+  </div>
+
+  <div id="pausedOverlay" class="paused-overlay">
+    <div class="paused-content">
+      <h2>Game Paused</h2>
+      <p>Click Resume to continue playing</p>
+      <button onclick="togglePause()" style="padding: 10px 20px; font-size: 16px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">Resume</button>
+    </div>
+  </div>
+
+ <script>
+  let decks = {};
+  let currentDeck = [];
+  let currentCard;
+  let usedCards = [];
+  let timer;
+  let timeLeft;
+  let playerHealth = 20;
+  let baseTimeLimit = 25; // Initial timer for Survival mode, will decrease
+  let correctCount = 0;
+  let wrongCount = 0;
+  let isPaused = false;
+
+  fetch('master_deck_cleaned.json?v=' + Date.now())
+    .then(res => {
+      if (!res.ok) throw new Error("HTTP error " + res.status);
+      return res.json();
+    })
+    .then(data => {
+      decks["Master"] = data;
+      document.getElementById("startButton").disabled = false;
+    })
+    .catch(err => {
+      alert("Failed to load deck: " + err.message);
+    });
+
+  function startGame() {
+    if (!decks["Master"] || decks["Master"].length === 0) {
+      alert("Deck not loaded yet. Please wait.");
+      return;
+    }
+
+    document.getElementById("summaryScreen").style.display = "none";
+
+    // Set baseTimeLimit for Survival mode (starting at 25 seconds, decreasing to a minimum of 5)
+    baseTimeLimit = 25; // Starting time for Survival mode
+    currentDeck = decks["Master"];
+    playerHealth = 20;
+    usedCards = [];
+    correctCount = 0;
+    wrongCount = 0;
+    isPaused = false;
+
+    document.getElementById("startScreen").style.display = "none";
+    document.getElementById("gameScreen").style.display = "block";
+    document.getElementById("pausedOverlay").style.display = "none";
+    document.getElementById("pauseButton").textContent = "Pause";
+    showQuestion();
+  }
+
+  function togglePause() {
+    isPaused = !isPaused;
+    const pauseButton = document.getElementById("pauseButton");
+    const pausedOverlay = document.getElementById("pausedOverlay");
+
+    if (isPaused) {
+      clearInterval(timer);
+      pauseButton.textContent = "Resume";
+      pausedOverlay.style.display = "flex";
+      disableAnswers();
+    } else {
+      pauseButton.textContent = "Pause";
+      pausedOverlay.style.display = "none";
+      enableAnswers();
+      startTimer();
+    }
+  }
+
+  function stopGame() {
+    if (confirm("Are you sure you want to stop the game? Your progress will be lost.")) {
+      clearInterval(timer);
+      isPaused = false;
+      document.getElementById("pausedOverlay").style.display = "none";
+      endGame('Game stopped by player.');
+    }
+  }
+
+  function updateHealth() {
+  const healthBarFill = document.getElementById('health-bar-fill');
+  const progressEl = document.getElementById('progress'); // Keep this if you still want to show progress
+  
+  // Calculate the percentage of health remaining
+  // Assuming max health is 20, as per your initial setup
+  const maxHealth = 20; 
+  const healthPercentage = (playerHealth / maxHealth) * 100;
+
+  if (healthBarFill) {
+    healthBarFill.style.width = `${healthPercentage}%`;
+    
+    // Optional: Change color based on health level
+    if (playerHealth > (maxHealth * 0.6)) {
+      healthBarFill.style.backgroundColor = '#4CAF50'; // Green
+    } else if (playerHealth > (maxHealth * 0.3)) {
+      healthBarFill.style.backgroundColor = '#FFC107'; // Orange
+    } else {
+      healthBarFill.style.backgroundColor = '#F44336'; // Red
+    }
+  }
+  
+  // If you had a separate element for "HP: X", you can remove this or keep it
+  // if you want both the bar and the number.
+  // const healthTextEl = document.getElementById('health-text'); 
+  // if (healthTextEl) healthTextEl.textContent = `HP: ${playerHealth}`; 
+
+  if (progressEl) progressEl.textContent = `Cards Completed: ${usedCards.length} / ${currentDeck.length}`;
+}
+
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  function startTimer() {
+    if (isPaused) return;
+
+    timeLeft = timeLeft || baseTimeLimit;
+    const timerEl = document.getElementById('timer');
+    if (timerEl) timerEl.textContent = `${timeLeft}`;
+    timer = setInterval(() => {
+      if (isPaused) return;
+
+      timeLeft--;
+      if (timerEl) timerEl.textContent = `${timeLeft}`;
+      if (timeLeft === 0) {
+        clearInterval(timer);
+        wrongCount++;
+        playerHealth -= 2;
+        const feedback = document.getElementById('feedback');
+        if (feedback) feedback.textContent = "⛔ Time's up! You take 2 damage.";
+        updateHealth();
+        disableAnswers();
+        setTimeout(checkGameEndOrContinue, 2000);
+      }
+    }, 1000);
+  }
+
+  function showQuestion() {
+    if (isPaused) return;
+
+    // Minimum time for Survival mode
+    let minTime = 5;
+
+    // Timer still decreases every 25 cards completed, down to the minTime
+    if (usedCards.length % 25 === 0 && usedCards.length !== 0 && baseTimeLimit > minTime) {
+      baseTimeLimit = Math.max(baseTimeLimit - 5, minTime);
+    }
+
+    const feedback = document.getElementById('feedback');
+    if (feedback) feedback.textContent = "";
+
+    if (usedCards.length === currentDeck.length) {
+      endGame("🎉 You've completed the deck!");
+      return;
+    }
+
+    const unusedCards = currentDeck.filter(card => !usedCards.includes(card));
+    currentCard = unusedCards[Math.floor(Math.random() * unusedCards.length)];
+    usedCards.push(currentCard);
+
+    const remainingDeck = currentDeck.filter(card => card !== currentCard);
+    shuffle(remainingDeck);
+    const options = remainingDeck.slice(0, 3);
+    options.push(currentCard);
+    shuffle(options);
+
+    const questionEl = document.getElementById('question');
+    const answersDiv = document.getElementById('answers');
+    if (questionEl) questionEl.textContent = `${currentCard.english}`;
+    if (answersDiv) answersDiv.innerHTML = "";
+
+    options.forEach(opt => {
+      const btn = document.createElement('div');
+      btn.className = 'answer';
+      btn.textContent = opt.spanish;
+      btn.onclick = () => checkAnswer(opt.spanish);
+      answersDiv.appendChild(btn);
+    });
+
+    updateHealth();
+    timeLeft = baseTimeLimit; // Reset timer for new question
+    startTimer();
+  }
+
+  function checkAnswer(selected) {
+    if (isPaused) return;
+
+    clearInterval(timer);
+    const feedback = document.getElementById('feedback');
+    let playerCorrect = selected === currentCard.spanish;
+
+    if (playerCorrect) {
+      correctCount++;
+      if (feedback) feedback.innerHTML = "✅ You were correct.";
+    } else {
+      wrongCount++;
+      playerHealth -= 2;
+      if (feedback) feedback.innerHTML = `❌ Wrong! The correct answer was "${currentCard.spanish}". You take 2 damage.`;
+    }
+
+    updateHealth();
+    disableAnswers();
+    setTimeout(checkGameEndOrContinue, 2000);
+  }
+
+  function disableAnswers() {
+    const buttons = document.querySelectorAll('.answer');
+    buttons.forEach(btn => btn.onclick = null);
+  }
+
+  function enableAnswers() {
+    if (isPaused || !currentCard) return;
+
+    const buttons = document.querySelectorAll('.answer');
+    buttons.forEach(btn => {
+      const spanish = btn.textContent;
+      btn.onclick = () => checkAnswer(spanish);
+    });
+  }
+
+  function checkGameEndOrContinue() {
+    if (isPaused) return;
+
+    if (playerHealth <= 0) {
+      endGame('Game Over! You lost.');
+    } else {
+      showQuestion();
+    }
+  }
+
+  function endGame(message) {
+    clearInterval(timer);
+    isPaused = false;
+
+    const gameScreen = document.getElementById("gameScreen");
+    const summaryScreen = document.getElementById("summaryScreen");
+    const summaryStats = document.getElementById("summaryStats");
+    const pausedOverlay = document.getElementById("pausedOverlay");
+
+    if (gameScreen) gameScreen.style.display = "none";
+    if (summaryScreen) summaryScreen.style.display = "block";
+    if (pausedOverlay) pausedOverlay.style.display = "none";
+
+    const total = correctCount + wrongCount;
+    const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
+
+    summaryStats.innerHTML = `
+      <p><strong>${message}</strong></p>
+      <p>Correct Answers: ${correctCount}</p>
+      <p>Wrong Answers: ${wrongCount}</p>
+      <p>Accuracy: ${accuracy}%</p>
+      <p>Mode: Survival</p>
+      <p>Final Timer Speed: ${baseTimeLimit} seconds</p>
+    `;
+  }
+</script>
+</body>
+</html>
