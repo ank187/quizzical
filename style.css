@@ -376,3 +376,40 @@ button:disabled {
   transition: width 0.5s ease-out;
   border-radius: 8px;
 }
+
+#missedAnswers {
+      max-width: 600px;
+      margin: 20px auto;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    #missedAnswers h3 {
+      text-align: center;
+      margin-bottom: 15px;
+      color: #FFD700;
+    }
+
+    .missed-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .missed-item:last-child {
+      border-bottom: none;
+    }
+
+    .missed-english {
+	  color: white;	
+      font-weight: bold;
+    }
+
+    .missed-spanish {
+      color: white;
+	  font-weight: bold;
+    }

@@ -8,7 +8,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Saira+Stencil+One&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
   <title>Lexicon Clash - A1 Solo Prototype</title>
-  <link rel="stylesheet" href="style.css"> </head>
+  <link rel="stylesheet" href="style.css">
+  
+</head>
 <body>
   <!-- Firefly Effects -->
   <div class="firefly"></div>
@@ -36,8 +38,8 @@
       <button id="stopButton" onclick="stopGame()">Stop Game</button>
     </div>
     <div id="health-bar-container">
-  <div id="health-bar-fill"></div>
-</div>
+      <div id="health-bar-fill"></div>
+    </div>
     <div id="question"></div>
     <div id="answers"></div>
     <div id="timer">25</div>
@@ -47,6 +49,10 @@
   <div id="summaryScreen" class="screen" style="display:none;">
     <h2>Game Summary</h2>
     <div id="summaryStats"></div>
+    <div id="missedAnswers" style="display:none;">
+      <h3>📚 Study These Missed Answers</h3>
+      <div id="missedList"></div>
+    </div>
     <button onclick="startGame()">Play Again</button>
   </div>
 
@@ -58,262 +64,315 @@
     </div>
   </div>
 
- <script>
-  let decks = {};
-  let currentDeck = [];
-  let currentCard;
-  let usedCards = [];
-  let timer;
-  let timeLeft;
-  let playerHealth = 20;
-  let baseTimeLimit = 25; // Initial timer for Survival mode, will decrease
-  let correctCount = 0;
-  let wrongCount = 0;
-  let isPaused = false;
+  <script>
+    let decks = {};
+    let currentDeck = [];
+    let currentCard;
+    let usedCards = [];
+    let missedAnswers = []; // New array to track missed answers
+    let timer;
+    let timeLeft;
+    let playerHealth = 20;
+    let baseTimeLimit = 25;
+    let correctCount = 0;
+    let wrongCount = 0;
+    let isPaused = false;
 
-  fetch('master_deck_cleaned.json?v=' + Date.now())
-    .then(res => {
-      if (!res.ok) throw new Error("HTTP error " + res.status);
-      return res.json();
-    })
-    .then(data => {
-      decks["Master"] = data;
-      document.getElementById("startButton").disabled = false;
-    })
-    .catch(err => {
-      alert("Failed to load deck: " + err.message);
-    });
+    // Sample deck for demo purposes
+    const sampleDeck = [
+      { english: "Hello", spanish: "Hola" },
+      { english: "Goodbye", spanish: "Adiós" },
+      { english: "Thank you", spanish: "Gracias" },
+      { english: "Please", spanish: "Por favor" },
+      { english: "Yes", spanish: "Sí" },
+      { english: "No", spanish: "No" },
+      { english: "Water", spanish: "Agua" },
+      { english: "Food", spanish: "Comida" },
+      { english: "House", spanish: "Casa" },
+      { english: "Car", spanish: "Coche" },
+      { english: "Dog", spanish: "Perro" },
+      { english: "Cat", spanish: "Gato" },
+      { english: "Book", spanish: "Libro" },
+      { english: "School", spanish: "Escuela" },
+      { english: "Friend", spanish: "Amigo" },
+      { english: "Family", spanish: "Familia" },
+      { english: "Time", spanish: "Tiempo" },
+      { english: "Money", spanish: "Dinero" },
+      { english: "Work", spanish: "Trabajo" },
+      { english: "Love", spanish: "Amor" }
+    ];
 
-  function startGame() {
-    if (!decks["Master"] || decks["Master"].length === 0) {
-      alert("Deck not loaded yet. Please wait.");
-      return;
-    }
+    // Initialize with sample deck
+    decks["Master"] = sampleDeck;
+    document.getElementById("startButton").disabled = false;
 
-    document.getElementById("summaryScreen").style.display = "none";
-
-    // Set baseTimeLimit for Survival mode (starting at 25 seconds, decreasing to a minimum of 5)
-    baseTimeLimit = 25; // Starting time for Survival mode
-    currentDeck = decks["Master"];
-    playerHealth = 20;
-    usedCards = [];
-    correctCount = 0;
-    wrongCount = 0;
-    isPaused = false;
-
-    document.getElementById("startScreen").style.display = "none";
-    document.getElementById("gameScreen").style.display = "block";
-    document.getElementById("pausedOverlay").style.display = "none";
-    document.getElementById("pauseButton").textContent = "Pause";
-    showQuestion();
-  }
-
-  function togglePause() {
-    isPaused = !isPaused;
-    const pauseButton = document.getElementById("pauseButton");
-    const pausedOverlay = document.getElementById("pausedOverlay");
-
-    if (isPaused) {
-      clearInterval(timer);
-      pauseButton.textContent = "Resume";
-      pausedOverlay.style.display = "flex";
-      disableAnswers();
-    } else {
-      pauseButton.textContent = "Pause";
-      pausedOverlay.style.display = "none";
-      enableAnswers();
-      startTimer();
-    }
-  }
-
-  function stopGame() {
-    if (confirm("Are you sure you want to stop the game? Your progress will be lost.")) {
-      clearInterval(timer);
-      isPaused = false;
-      document.getElementById("pausedOverlay").style.display = "none";
-      endGame('Game stopped by player.');
-    }
-  }
-
-  function updateHealth() {
-  const healthBarFill = document.getElementById('health-bar-fill');
-  const progressEl = document.getElementById('progress'); // Keep this if you still want to show progress
-  
-  // Calculate the percentage of health remaining
-  // Assuming max health is 20, as per your initial setup
-  const maxHealth = 20; 
-  const healthPercentage = (playerHealth / maxHealth) * 100;
-
-  if (healthBarFill) {
-    healthBarFill.style.width = `${healthPercentage}%`;
-    
-    // Optional: Change color based on health level
-    if (playerHealth > (maxHealth * 0.6)) {
-      healthBarFill.style.backgroundColor = '#4CAF50'; // Green
-    } else if (playerHealth > (maxHealth * 0.3)) {
-      healthBarFill.style.backgroundColor = '#FFC107'; // Orange
-    } else {
-      healthBarFill.style.backgroundColor = '#F44336'; // Red
-    }
-  }
-  
-  // If you had a separate element for "HP: X", you can remove this or keep it
-  // if you want both the bar and the number.
-  // const healthTextEl = document.getElementById('health-text'); 
-  // if (healthTextEl) healthTextEl.textContent = `HP: ${playerHealth}`; 
-
-  if (progressEl) progressEl.textContent = `Cards Completed: ${usedCards.length} / ${currentDeck.length}`;
-}
-
-  function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-  }
-
-  function startTimer() {
-    if (isPaused) return;
-
-    timeLeft = timeLeft || baseTimeLimit;
-    const timerEl = document.getElementById('timer');
-    if (timerEl) timerEl.textContent = `${timeLeft}`;
-    timer = setInterval(() => {
-      if (isPaused) return;
-
-      timeLeft--;
-      if (timerEl) timerEl.textContent = `${timeLeft}`;
-      if (timeLeft === 0) {
-        clearInterval(timer);
-        wrongCount++;
-        playerHealth -= 2;
-        const feedback = document.getElementById('feedback');
-        if (feedback) feedback.textContent = "⛔ Time's up! You take 2 damage.";
-        updateHealth();
-        disableAnswers();
-        setTimeout(checkGameEndOrContinue, 2000);
+    function startGame() {
+      if (!decks["Master"] || decks["Master"].length === 0) {
+        alert("Deck not loaded yet. Please wait.");
+        return;
       }
-    }, 1000);
-  }
 
-  function showQuestion() {
-    if (isPaused) return;
+      document.getElementById("summaryScreen").style.display = "none";
 
-    // Minimum time for Survival mode
-    let minTime = 5;
+      baseTimeLimit = 25;
+      currentDeck = decks["Master"];
+      playerHealth = 20;
+      usedCards = [];
+      missedAnswers = []; // Reset missed answers
+      correctCount = 0;
+      wrongCount = 0;
+      isPaused = false;
 
-    // Timer still decreases every 25 cards completed, down to the minTime
-    if (usedCards.length % 25 === 0 && usedCards.length !== 0 && baseTimeLimit > minTime) {
-      baseTimeLimit = Math.max(baseTimeLimit - 5, minTime);
-    }
-
-    const feedback = document.getElementById('feedback');
-    if (feedback) feedback.textContent = "";
-
-    if (usedCards.length === currentDeck.length) {
-      endGame("🎉 You've completed the deck!");
-      return;
-    }
-
-    const unusedCards = currentDeck.filter(card => !usedCards.includes(card));
-    currentCard = unusedCards[Math.floor(Math.random() * unusedCards.length)];
-    usedCards.push(currentCard);
-
-    const remainingDeck = currentDeck.filter(card => card !== currentCard);
-    shuffle(remainingDeck);
-    const options = remainingDeck.slice(0, 3);
-    options.push(currentCard);
-    shuffle(options);
-
-    const questionEl = document.getElementById('question');
-    const answersDiv = document.getElementById('answers');
-    if (questionEl) questionEl.textContent = `${currentCard.english}`;
-    if (answersDiv) answersDiv.innerHTML = "";
-
-    options.forEach(opt => {
-      const btn = document.createElement('div');
-      btn.className = 'answer';
-      btn.textContent = opt.spanish;
-      btn.onclick = () => checkAnswer(opt.spanish);
-      answersDiv.appendChild(btn);
-    });
-
-    updateHealth();
-    timeLeft = baseTimeLimit; // Reset timer for new question
-    startTimer();
-  }
-
-  function checkAnswer(selected) {
-    if (isPaused) return;
-
-    clearInterval(timer);
-    const feedback = document.getElementById('feedback');
-    let playerCorrect = selected === currentCard.spanish;
-
-    if (playerCorrect) {
-      correctCount++;
-      if (feedback) feedback.innerHTML = "✅ You were correct.";
-    } else {
-      wrongCount++;
-      playerHealth -= 2;
-      if (feedback) feedback.innerHTML = `❌ Wrong! The correct answer was "${currentCard.spanish}". You take 2 damage.`;
-    }
-
-    updateHealth();
-    disableAnswers();
-    setTimeout(checkGameEndOrContinue, 2000);
-  }
-
-  function disableAnswers() {
-    const buttons = document.querySelectorAll('.answer');
-    buttons.forEach(btn => btn.onclick = null);
-  }
-
-  function enableAnswers() {
-    if (isPaused || !currentCard) return;
-
-    const buttons = document.querySelectorAll('.answer');
-    buttons.forEach(btn => {
-      const spanish = btn.textContent;
-      btn.onclick = () => checkAnswer(spanish);
-    });
-  }
-
-  function checkGameEndOrContinue() {
-    if (isPaused) return;
-
-    if (playerHealth <= 0) {
-      endGame('Game Over! You lost.');
-    } else {
+      document.getElementById("startScreen").style.display = "none";
+      document.getElementById("gameScreen").style.display = "block";
+      document.getElementById("pausedOverlay").style.display = "none";
+      document.getElementById("pauseButton").textContent = "Pause";
       showQuestion();
     }
-  }
 
-  function endGame(message) {
-    clearInterval(timer);
-    isPaused = false;
+    function togglePause() {
+      isPaused = !isPaused;
+      const pauseButton = document.getElementById("pauseButton");
+      const pausedOverlay = document.getElementById("pausedOverlay");
 
-    const gameScreen = document.getElementById("gameScreen");
-    const summaryScreen = document.getElementById("summaryScreen");
-    const summaryStats = document.getElementById("summaryStats");
-    const pausedOverlay = document.getElementById("pausedOverlay");
+      if (isPaused) {
+        clearInterval(timer);
+        pauseButton.textContent = "Resume";
+        pausedOverlay.style.display = "flex";
+        disableAnswers();
+      } else {
+        pauseButton.textContent = "Pause";
+        pausedOverlay.style.display = "none";
+        enableAnswers();
+        startTimer();
+      }
+    }
 
-    if (gameScreen) gameScreen.style.display = "none";
-    if (summaryScreen) summaryScreen.style.display = "block";
-    if (pausedOverlay) pausedOverlay.style.display = "none";
+    function stopGame() {
+      if (confirm("Are you sure you want to stop the game? Your progress will be lost.")) {
+        clearInterval(timer);
+        isPaused = false;
+        document.getElementById("pausedOverlay").style.display = "none";
+        endGame('Game stopped by player.');
+      }
+    }
 
-    const total = correctCount + wrongCount;
-    const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
+    function updateHealth() {
+      const healthBarFill = document.getElementById('health-bar-fill');
+      const progressEl = document.getElementById('progress');
+      
+      const maxHealth = 20; 
+      const healthPercentage = (playerHealth / maxHealth) * 100;
 
-    summaryStats.innerHTML = `
-      <p><strong>${message}</strong></p>
-      <p>Correct Answers: ${correctCount}</p>
-      <p>Wrong Answers: ${wrongCount}</p>
-      <p>Accuracy: ${accuracy}%</p>
-      <p>Mode: Survival</p>
-      <p>Final Timer Speed: ${baseTimeLimit} seconds</p>
-    `;
-  }
-</script>
+      if (healthBarFill) {
+        healthBarFill.style.width = `${healthPercentage}%`;
+        
+        if (playerHealth > (maxHealth * 0.6)) {
+          healthBarFill.style.backgroundColor = '#4CAF50';
+        } else if (playerHealth > (maxHealth * 0.3)) {
+          healthBarFill.style.backgroundColor = '#FFC107';
+        } else {
+          healthBarFill.style.backgroundColor = '#F44336';
+        }
+      }
+
+      if (progressEl) progressEl.textContent = `Cards Completed: ${usedCards.length} / ${currentDeck.length}`;
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function startTimer() {
+      if (isPaused) return;
+
+      timeLeft = timeLeft || baseTimeLimit;
+      const timerEl = document.getElementById('timer');
+      if (timerEl) timerEl.textContent = `${timeLeft}`;
+      timer = setInterval(() => {
+        if (isPaused) return;
+
+        timeLeft--;
+        if (timerEl) timerEl.textContent = `${timeLeft}`;
+        if (timeLeft === 0) {
+          clearInterval(timer);
+          wrongCount++;
+          playerHealth -= 2;
+          
+          // Add missed answer for timeout
+          missedAnswers.push({
+            english: currentCard.english,
+            spanish: currentCard.spanish,
+            reason: "timeout"
+          });
+          
+          const feedback = document.getElementById('feedback');
+          if (feedback) feedback.textContent = "⛔ Time's up! You take 2 damage.";
+          updateHealth();
+          disableAnswers();
+          setTimeout(checkGameEndOrContinue, 2000);
+        }
+      }, 1000);
+    }
+
+    function showQuestion() {
+      if (isPaused) return;
+
+      let minTime = 5;
+
+      if (usedCards.length % 25 === 0 && usedCards.length !== 0 && baseTimeLimit > minTime) {
+        baseTimeLimit = Math.max(baseTimeLimit - 5, minTime);
+      }
+
+      const feedback = document.getElementById('feedback');
+      if (feedback) feedback.textContent = "";
+
+      if (usedCards.length === currentDeck.length) {
+        endGame("🎉 You've completed the deck!");
+        return;
+      }
+
+      const unusedCards = currentDeck.filter(card => !usedCards.includes(card));
+      currentCard = unusedCards[Math.floor(Math.random() * unusedCards.length)];
+      usedCards.push(currentCard);
+
+      const remainingDeck = currentDeck.filter(card => card !== currentCard);
+      shuffle(remainingDeck);
+      const options = remainingDeck.slice(0, 3);
+      options.push(currentCard);
+      shuffle(options);
+
+      const questionEl = document.getElementById('question');
+      const answersDiv = document.getElementById('answers');
+      if (questionEl) questionEl.textContent = `${currentCard.english}`;
+      if (answersDiv) answersDiv.innerHTML = "";
+
+      options.forEach(opt => {
+        const btn = document.createElement('div');
+        btn.className = 'answer';
+        btn.textContent = opt.spanish;
+        btn.onclick = () => checkAnswer(opt.spanish);
+        answersDiv.appendChild(btn);
+      });
+
+      updateHealth();
+      timeLeft = baseTimeLimit;
+      startTimer();
+    }
+
+    function checkAnswer(selected) {
+      if (isPaused) return;
+
+      clearInterval(timer);
+      const feedback = document.getElementById('feedback');
+      let playerCorrect = selected === currentCard.spanish;
+
+      if (playerCorrect) {
+        correctCount++;
+        if (feedback) feedback.innerHTML = "✅ You were correct.";
+      } else {
+        wrongCount++;
+        playerHealth -= 2;
+        
+        // Add missed answer for wrong selection
+        missedAnswers.push({
+          english: currentCard.english,
+          spanish: currentCard.spanish,
+          selectedAnswer: selected,
+          reason: "wrong_answer"
+        });
+        
+        if (feedback) feedback.innerHTML = `❌ Wrong! The correct answer was "${currentCard.spanish}". You take 2 damage.`;
+      }
+
+      updateHealth();
+      disableAnswers();
+      setTimeout(checkGameEndOrContinue, 2000);
+    }
+
+    function disableAnswers() {
+      const buttons = document.querySelectorAll('.answer');
+      buttons.forEach(btn => btn.onclick = null);
+    }
+
+    function enableAnswers() {
+      if (isPaused || !currentCard) return;
+
+      const buttons = document.querySelectorAll('.answer');
+      buttons.forEach(btn => {
+        const spanish = btn.textContent;
+        btn.onclick = () => checkAnswer(spanish);
+      });
+    }
+
+    function checkGameEndOrContinue() {
+      if (isPaused) return;
+
+      if (playerHealth <= 0) {
+        endGame('Game Over! You lost.');
+      } else {
+        showQuestion();
+      }
+    }
+
+    function endGame(message) {
+      clearInterval(timer);
+      isPaused = false;
+
+      const gameScreen = document.getElementById("gameScreen");
+      const summaryScreen = document.getElementById("summaryScreen");
+      const summaryStats = document.getElementById("summaryStats");
+      const pausedOverlay = document.getElementById("pausedOverlay");
+
+      if (gameScreen) gameScreen.style.display = "none";
+      if (summaryScreen) summaryScreen.style.display = "block";
+      if (pausedOverlay) pausedOverlay.style.display = "none";
+
+      const total = correctCount + wrongCount;
+      const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
+
+      summaryStats.innerHTML = `
+        <p><strong>${message}</strong></p>
+        <p>Correct Answers: ${correctCount}</p>
+        <p>Wrong Answers: ${wrongCount}</p>
+        <p>Accuracy: ${accuracy}%</p>
+        <p>Mode: Survival</p>
+        <p>Final Timer Speed: ${baseTimeLimit} seconds</p>
+      `;
+
+      // Display missed answers if any
+      const missedAnswersDiv = document.getElementById("missedAnswers");
+      const missedListDiv = document.getElementById("missedList");
+      
+      if (missedAnswers.length > 0) {
+        missedAnswersDiv.style.display = "block";
+        missedListDiv.innerHTML = "";
+        
+        missedAnswers.forEach(missed => {
+          const missedItem = document.createElement('div');
+          missedItem.className = 'missed-item';
+          
+          let reasonText = "";
+          if (missed.reason === "timeout") {
+            reasonText = " (⏰ Timed out)";
+          } else if (missed.selectedAnswer) {
+            reasonText = ` (❌ You answered: ${missed.selectedAnswer})`;
+          }
+          
+          missedItem.innerHTML = `
+            <span class="missed-english">${missed.english}</span>
+            <span class="missed-spanish">${missed.spanish}${reasonText}</span>
+          `;
+          
+          missedListDiv.appendChild(missedItem);
+        });
+      } else {
+        missedAnswersDiv.style.display = "none";
+      }
+    }
+  </script>
 </body>
 </html>
