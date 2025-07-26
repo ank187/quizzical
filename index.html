@@ -78,33 +78,18 @@
     let wrongCount = 0;
     let isPaused = false;
 
-    // Sample deck for demo purposes
-    const sampleDeck = [
-      { english: "Hello", spanish: "Hola" },
-      { english: "Goodbye", spanish: "Adiós" },
-      { english: "Thank you", spanish: "Gracias" },
-      { english: "Please", spanish: "Por favor" },
-      { english: "Yes", spanish: "Sí" },
-      { english: "No", spanish: "No" },
-      { english: "Water", spanish: "Agua" },
-      { english: "Food", spanish: "Comida" },
-      { english: "House", spanish: "Casa" },
-      { english: "Car", spanish: "Coche" },
-      { english: "Dog", spanish: "Perro" },
-      { english: "Cat", spanish: "Gato" },
-      { english: "Book", spanish: "Libro" },
-      { english: "School", spanish: "Escuela" },
-      { english: "Friend", spanish: "Amigo" },
-      { english: "Family", spanish: "Familia" },
-      { english: "Time", spanish: "Tiempo" },
-      { english: "Money", spanish: "Dinero" },
-      { english: "Work", spanish: "Trabajo" },
-      { english: "Love", spanish: "Amor" }
-    ];
-
-    // Initialize with sample deck
-    decks["Master"] = sampleDeck;
-    document.getElementById("startButton").disabled = false;
+    fetch('master_deck_cleaned.json?v=' + Date.now())
+    .then(res => {
+      if (!res.ok) throw new Error("HTTP error " + res.status);
+      return res.json();
+    })
+    .then(data => {
+      decks["Master"] = data;
+      document.getElementById("startButton").disabled = false;
+    })
+    .catch(err => {
+      alert("Failed to load deck: " + err.message);
+    });
 
     function startGame() {
       if (!decks["Master"] || decks["Master"].length === 0) {
