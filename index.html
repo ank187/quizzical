@@ -68,8 +68,9 @@
     let decks = {};
     let currentDeck = [];
     let currentCard;
+    let currentCardIndex = 0; // New variable for sequential progression
     let usedCards = [];
-    let missedAnswers = []; // New array to track missed answers
+    let missedAnswers = [];
     let timer;
     let timeLeft;
     let playerHealth = 20;
@@ -102,8 +103,9 @@
       baseTimeLimit = 25;
       currentDeck = decks["Master"];
       playerHealth = 20;
+      currentCardIndex = 0; // Reset index for sequential progression
       usedCards = [];
-      missedAnswers = []; // Reset missed answers
+      missedAnswers = [];
       correctCount = 0;
       wrongCount = 0;
       isPaused = false;
@@ -187,7 +189,6 @@
           wrongCount++;
           playerHealth -= 2;
           
-          // Add missed answer for timeout
           missedAnswers.push({
             english: currentCard.english,
             spanish: currentCard.spanish,
@@ -215,13 +216,15 @@
       const feedback = document.getElementById('feedback');
       if (feedback) feedback.textContent = "";
 
-      if (usedCards.length === currentDeck.length) {
+      // Check if we've completed all cards using the index
+      if (currentCardIndex >= currentDeck.length) {
         endGame("🎉 You've completed the deck!");
         return;
       }
 
-      const unusedCards = currentDeck.filter(card => !usedCards.includes(card));
-      currentCard = unusedCards[Math.floor(Math.random() * unusedCards.length)];
+      // Sequential selection: pick card by index
+      currentCard = currentDeck[currentCardIndex];
+      currentCardIndex++;
       usedCards.push(currentCard);
 
       const remainingDeck = currentDeck.filter(card => card !== currentCard);
@@ -262,7 +265,6 @@
         wrongCount++;
         playerHealth -= 2;
         
-        // Add missed answer for wrong selection
         missedAnswers.push({
           english: currentCard.english,
           spanish: currentCard.spanish,
@@ -328,7 +330,6 @@
         <p>Final Timer Speed: ${baseTimeLimit} seconds</p>
       `;
 
-      // Display missed answers if any
       const missedAnswersDiv = document.getElementById("missedAnswers");
       const missedListDiv = document.getElementById("missedList");
       
@@ -360,4 +361,5 @@
     }
   </script>
 </body>
+
 </html>
