@@ -7,9 +7,592 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Saira+Stencil+One&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
-  <title>Lexicon Clash - A1 Solo Prototype</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Lexicon Clash - Spaced Repetition Edition</title>
   
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Firefly effect */
+    .firefly {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      width: 0.4vw;
+      height: 0.4vw;
+      margin: -0.2vw 0 0 9.8vw;
+      animation: ease 200s alternate infinite;
+      pointer-events: none;
+    }
+
+    .firefly::before,
+    .firefly::after {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      transform-origin: -10vw;
+    }
+
+    .firefly::before {
+      background: black;
+      opacity: 0.4;
+      animation: drift ease alternate infinite;
+    }
+
+    .firefly::after {
+      background: white;
+      opacity: 0;
+      box-shadow: 0 0 0vw 0vw yellow;
+      animation: drift ease alternate infinite, flash ease infinite;
+    }
+
+    @keyframes drift {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes flash {
+      0%, 30%, 100% {
+        opacity: 0;
+        box-shadow: 0 0 0vw 0vw yellow;
+      }
+      5% {
+        opacity: 1;
+        box-shadow: 0 0 2vw 0.4vw yellow;
+      }
+    }
+
+    .firefly:nth-child(1) { animation-name: move1; }
+    .firefly:nth-child(2) { animation-name: move2; }
+    .firefly:nth-child(3) { animation-name: move3; }
+    .firefly:nth-child(4) { animation-name: move4; }
+    .firefly:nth-child(5) { animation-name: move5; }
+    .firefly:nth-child(6) { animation-name: move6; }
+
+    @keyframes move1 { 0% { transform: translateX(-10vw) translateY(-10vh) scale(0.2); } 100% { transform: translateX(20vw) translateY(10vh) scale(0.5); } }
+    @keyframes move2 { 0% { transform: translateX(15vw) translateY(-5vh) scale(0.3); } 100% { transform: translateX(-20vw) translateY(15vh) scale(0.6); } }
+    @keyframes move3 { 0% { transform: translateX(-5vw) translateY(10vh) scale(0.4); } 100% { transform: translateX(10vw) translateY(-15vh) scale(0.3); } }
+    @keyframes move4 { 0% { transform: translateX(20vw) translateY(5vh) scale(0.5); } 100% { transform: translateX(-10vw) translateY(-10vh) scale(0.4); } }
+    @keyframes move5 { 0% { transform: translateX(-15vw) translateY(15vh) scale(0.3); } 100% { transform: translateX(25vw) translateY(-5vh) scale(0.5); } }
+    @keyframes move6 { 0% { transform: translateX(10vw) translateY(-20vh) scale(0.4); } 100% { transform: translateX(-15vw) translateY(20vh) scale(0.6); } }
+
+    .firefly:nth-child(1)::before, .firefly:nth-child(1)::after { animation-duration: 23s, 5153ms; animation-delay: 0ms, 0ms; }
+    .firefly:nth-child(2)::before, .firefly:nth-child(2)::after { animation-duration: 27s, 5427ms; animation-delay: 300ms, 300ms; }
+    .firefly:nth-child(3)::before, .firefly:nth-child(3)::after { animation-duration: 31s, 5731ms; animation-delay: 600ms, 600ms; }
+    .firefly:nth-child(4)::before, .firefly:nth-child(4)::after { animation-duration: 29s, 5329ms; animation-delay: 900ms, 900ms; }
+    .firefly:nth-child(5)::before, .firefly:nth-child(5)::after { animation-duration: 25s, 5025ms; animation-delay: 1200ms, 1200ms; }
+    .firefly:nth-child(6)::before, .firefly:nth-child(6)::after { animation-duration: 33s, 5533ms; animation-delay: 1500ms, 1500ms; }
+
+    /* Game screens */
+    .screen {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      min-width: 500px;
+      max-width: 900px;
+      display: none;
+      position: relative;
+      z-index: 10;
+    }
+
+    h1, h2 {
+      font-family: 'Saira Stencil One', cursive;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 50px;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      margin: 10px;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    button.secondary {
+      background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+    }
+
+    button.warning {
+      background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+    }
+
+    /* Dashboard Styles */
+    .dashboard-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 20px;
+      margin: 30px 0;
+    }
+
+    .stat-box {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .stat-box h3 {
+      font-size: 2.5em;
+      color: #667eea;
+      margin: 10px 0;
+      font-weight: bold;
+    }
+
+    .stat-box p {
+      color: #666;
+      font-size: 0.9em;
+    }
+
+    .stat-box.due {
+      border: 3px solid #667eea;
+      background: linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%);
+    }
+
+    .review-progress {
+      background: #f0f0f0;
+      height: 30px;
+      border-radius: 15px;
+      overflow: hidden;
+      margin: 20px 0;
+      position: relative;
+    }
+
+    .review-progress-bar {
+      height: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      transition: width 0.5s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+    }
+
+    .streak-display {
+      display: inline-block;
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 25px;
+      margin: 20px 0;
+      font-size: 1.2em;
+    }
+
+    .streak-display .flame {
+      display: inline-block;
+      margin-right: 10px;
+      animation: flicker 1.5s ease-in-out infinite;
+    }
+
+    @keyframes flicker {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.1) rotate(-5deg); }
+    }
+
+    /* Game Mode Selection */
+    .game-modes {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 30px 0;
+    }
+
+    .mode-card {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      width: 200px;
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    .mode-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      border-color: #667eea;
+    }
+
+    .mode-card.selected {
+      border-color: #764ba2;
+      background: linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%);
+    }
+
+    .mode-card h3 {
+      color: #764ba2;
+      margin-bottom: 10px;
+      font-size: 1.3em;
+    }
+
+    .mode-card p {
+      color: #666;
+      font-size: 0.9em;
+      line-height: 1.4;
+    }
+
+    .difficulty-badge {
+      display: inline-block;
+      background: #FFC107;
+      color: #333;
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-size: 0.8em;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .difficulty-hard {
+      background: #F44336;
+      color: white;
+    }
+
+    /* Card Stage Badges */
+    .card-stage {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 0.8em;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    .card-stage.new {
+      background: #4CAF50;
+      color: white;
+    }
+
+    .card-stage.learning {
+      background: #2196F3;
+      color: white;
+    }
+
+    .card-stage.review {
+      background: #FF9800;
+      color: white;
+    }
+
+    .card-stage.relearning {
+      background: #F44336;
+      color: white;
+    }
+
+    /* Health bar */
+    #health-bar-container {
+      width: 100%;
+      height: 30px;
+      background: #ddd;
+      border-radius: 15px;
+      overflow: hidden;
+      margin: 20px 0;
+      position: relative;
+    }
+
+    #health-bar-fill {
+      height: 100%;
+      background: #4CAF50;
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    /* Question and answers */
+    #question {
+      font-size: 2em;
+      margin: 30px 0;
+      color: #333;
+      font-weight: bold;
+    }
+
+    #answers {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .answer {
+      background: white;
+      border: 2px solid #ddd;
+      padding: 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1.2em;
+    }
+
+    .answer:hover {
+      border-color: #667eea;
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .answer.disabled {
+      pointer-events: none;
+      opacity: 0.6;
+    }
+
+    /* Type Answer Mode */
+    .type-answer-container {
+      margin: 30px auto;
+      max-width: 400px;
+    }
+
+    #typeAnswerInput {
+      width: 100%;
+      padding: 15px;
+      font-size: 1.3em;
+      border: 3px solid #ddd;
+      border-radius: 10px;
+      text-align: center;
+      transition: border-color 0.3s ease;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    #typeAnswerInput:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    #typeAnswerInput.correct {
+      border-color: #4CAF50;
+      background-color: #E8F5E9;
+    }
+
+    #typeAnswerInput.incorrect {
+      border-color: #F44336;
+      background-color: #FFEBEE;
+    }
+
+    .submit-button {
+      margin-top: 20px;
+      width: 200px;
+    }
+
+    .hint-text {
+      color: #666;
+      font-size: 0.9em;
+      margin-top: 10px;
+      font-style: italic;
+    }
+
+    /* Timer */
+    #timer {
+      font-size: 2.5em;
+      color: #764ba2;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+
+    /* Feedback */
+    #feedback {
+      font-size: 1.2em;
+      margin: 20px 0;
+      min-height: 30px;
+      font-weight: bold;
+    }
+
+    /* Game controls */
+    .game-controls {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .game-controls button {
+      padding: 8px 15px;
+      font-size: 0.9em;
+    }
+
+    /* Paused overlay */
+    .paused-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .paused-content {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+    }
+
+    /* Summary screen */
+    #summaryStats {
+      font-size: 1.2em;
+      margin: 20px 0;
+      line-height: 1.8;
+    }
+
+    #missedList {
+      text-align: left;
+      max-height: 300px;
+      overflow-y: auto;
+      margin: 20px 0;
+      padding: 20px;
+      background: #f5f5f5;
+      border-radius: 10px;
+    }
+
+    .missed-item {
+      padding: 10px;
+      margin: 10px 0;
+      background: white;
+      border-radius: 5px;
+      border-left: 4px solid #F44336;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      border-left: 4px solid #667eea;
+    }
+
+    .stat-label {
+      color: #666;
+      font-size: 0.9em;
+    }
+
+    .stat-value {
+      font-size: 1.8em;
+      font-weight: bold;
+      color: #333;
+      margin-top: 5px;
+    }
+
+    /* Settings button */
+    .settings-button {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .settings-button:hover {
+      background: rgba(255,255,255,0.5);
+      transform: rotate(90deg);
+    }
+
+    /* Settings modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .settings-group {
+      margin: 20px 0;
+      text-align: left;
+    }
+
+    .settings-group label {
+      display: block;
+      color: #666;
+      margin-bottom: 5px;
+      font-size: 0.9em;
+    }
+
+    .settings-group input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      font-size: 1em;
+    }
+
+    .danger-zone {
+      border-top: 2px solid #f44336;
+      margin-top: 30px;
+      padding-top: 20px;
+    }
+
+    .danger-zone h3 {
+      color: #f44336;
+    }
+  </style>
 </head>
 <body>
   <!-- Firefly Effects -->
@@ -19,19 +602,68 @@
   <div class="firefly"></div>
   <div class="firefly"></div>
   <div class="firefly"></div>
-  <div class="firefly"></div>
-  <div class="firefly"></div>
-  <div class="firefly"></div>
-  <div class="firefly"></div>
-  <div class="firefly"></div>
-  <div class="firefly"></div>
 
-  <div id="startScreen" class="screen" style="display: block;">
-    <h1>Lexicon Clash - A1 Solo Challenge</h1>
-    <br>
-    <button id="startButton" onclick="startGame()" disabled>Start Game</button>
+  <!-- Dashboard Screen -->
+  <div id="dashboardScreen" class="screen" style="display: block;">
+    <div class="settings-button" onclick="openSettings()">⚙️</div>
+    <h1>Lexicon Clash - Daily Review</h1>
+    
+    <div class="streak-display">
+      <span class="flame">🔥</span>
+      <span id="streakCount">0</span> Day Streak
+    </div>
+    
+    <div class="dashboard-stats">
+      <div class="stat-box due">
+        <h3 id="dueCount">0</h3>
+        <p>Cards Due Today</p>
+      </div>
+      <div class="stat-box">
+        <h3 id="newCount">0</h3>
+        <p>New Cards Available</p>
+      </div>
+      <div class="stat-box">
+        <h3 id="learnedCount">0</h3>
+        <p>Cards Learned</p>
+      </div>
+      <div class="stat-box">
+        <h3 id="totalReviewCount">0</h3>
+        <p>Total Reviews</p>
+      </div>
+    </div>
+
+    <div class="review-progress">
+      <div class="review-progress-bar" id="progressBar">
+        <span id="progressText">0 / 0</span>
+      </div>
+    </div>
+
+    <button id="startReviewButton" onclick="showModeSelection()">Start Daily Review</button>
+    <button class="secondary" onclick="startPracticeMode()">Practice Mode (No Progress)</button>
   </div>
 
+  <!-- Mode Selection Screen -->
+  <div id="modeScreen" class="screen">
+    <h1>Choose Your Challenge</h1>
+    <div class="game-modes">
+      <div class="mode-card" onclick="selectMode('multiple')" id="multipleMode">
+        <h3>📝 Multiple Choice</h3>
+        <p>Select the correct Spanish translation from four options.</p>
+        <p>Great for recognition and building confidence.</p>
+        <span class="difficulty-badge">Medium Difficulty</span>
+      </div>
+      <div class="mode-card" onclick="selectMode('typing')" id="typingMode">
+        <h3>⌨️ Type Answer</h3>
+        <p>Type the Spanish translation from memory.</p>
+        <p>Maximum active recall for deeper learning.</p>
+        <span class="difficulty-badge difficulty-hard">Hard Difficulty</span>
+      </div>
+    </div>
+    <button id="playButton" onclick="startGame()" disabled>Start Session</button>
+    <button onclick="backToDashboard()">Back</button>
+  </div>
+
+  <!-- Game Screen -->
   <div id="gameScreen" class="screen">
     <div class="game-controls">
       <button id="pauseButton" onclick="togglePause()">Pause</button>
@@ -40,35 +672,313 @@
     <div id="health-bar-container">
       <div id="health-bar-fill"></div>
     </div>
-    <div id="question"></div>
-    <div id="answers"></div>
     <div id="timer">25</div>
+    
+    <div id="cardStageDisplay"></div>
+    <div id="question"></div>
+    
+    <!-- Multiple Choice Answers -->
+    <div id="answers" style="display: none;"></div>
+    
+    <!-- Typing Mode Container -->
+    <div id="typeAnswerContainer" class="type-answer-container" style="display: none;">
+      <input type="text" id="typeAnswerInput" placeholder="Type the Spanish translation..." autocomplete="off">
+      <div class="hint-text">Press Enter to submit or click the button below</div>
+      <button class="submit-button" onclick="submitTypedAnswer()">Submit Answer</button>
+    </div>
+    
     <div id="feedback"></div>
+    <div id="progress" style="margin-top: 20px; color: #666; font-size: 0.9em;"></div>
   </div>
 
-  <div id="summaryScreen" class="screen" style="display:none;">
-    <h2>Game Summary</h2>
+  <!-- Summary Screen -->
+  <div id="summaryScreen" class="screen">
+    <h2>Session Summary</h2>
     <div id="summaryStats"></div>
     <div id="missedAnswers" style="display:none;">
       <h3>📚 Study These Missed Answers</h3>
       <div id="missedList"></div>
     </div>
-    <button onclick="startGame()">Play Again</button>
+    <button onclick="backToDashboard()">Back to Dashboard</button>
   </div>
 
+  <!-- Paused Overlay -->
   <div id="pausedOverlay" class="paused-overlay">
     <div class="paused-content">
       <h2>Game Paused</h2>
       <p>Click Resume to continue playing</p>
-      <button onclick="togglePause()" style="padding: 10px 20px; font-size: 16px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">Resume</button>
+      <button onclick="togglePause()">Resume</button>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal-overlay">
+    <div class="modal-content">
+      <h2>Settings</h2>
+      
+      <div class="settings-group">
+        <label>Daily New Cards Limit</label>
+        <input type="number" id="newCardsLimit" min="1" max="50" value="20">
+      </div>
+      
+      <div class="settings-group">
+        <label>Daily Review Cards Limit</label>
+        <input type="number" id="reviewCardsLimit" min="10" max="200" value="100">
+      </div>
+      
+      <div class="danger-zone">
+        <h3>⚠️ Danger Zone</h3>
+        <button class="warning" onclick="resetProgress()">Reset All Progress</button>
+        <p style="color: #666; font-size: 0.9em; margin-top: 10px;">
+          This will delete all your learning progress and statistics. This action cannot be undone.
+        </p>
+      </div>
+      
+      <div style="margin-top: 30px;">
+        <button onclick="saveSettings()">Save Settings</button>
+        <button onclick="closeSettings()">Cancel</button>
+      </div>
     </div>
   </div>
 
   <script>
+    // ===== SPACED REPETITION SYSTEM =====
+    class SpacedRepetitionSystem {
+      constructor() {
+        this.cards = {};
+        this.settings = {
+          newCardsPerDay: 20,
+          reviewCardsPerDay: 100,
+          intervals: [1, 3, 7, 14, 30, 60, 120, 365] // Days
+        };
+        this.todayStr = new Date().toDateString();
+        this.loadFromStorage();
+      }
+
+      loadFromStorage() {
+        // Load card data
+        const stored = localStorage.getItem('lexiconClashSRS');
+        if (stored) {
+          const data = JSON.parse(stored);
+          this.cards = data.cards || {};
+          this.settings = { ...this.settings, ...data.settings };
+        }
+
+        // Load streak data
+        const streakData = localStorage.getItem('lexiconStreak');
+        if (streakData) {
+          const streak = JSON.parse(streakData);
+          if (streak.lastReview === this.todayStr) {
+            this.streak = streak.count;
+          } else if (this.wasYesterday(streak.lastReview)) {
+            this.streak = streak.count;
+          } else {
+            this.streak = 0;
+          }
+        } else {
+          this.streak = 0;
+        }
+      }
+
+      saveToStorage() {
+        const data = {
+          cards: this.cards,
+          settings: this.settings,
+          lastSave: new Date().toISOString()
+        };
+        localStorage.setItem('lexiconClashSRS', JSON.stringify(data));
+      }
+
+      updateStreak() {
+        const streakData = {
+          count: this.streak,
+          lastReview: this.todayStr
+        };
+        localStorage.setItem('lexiconStreak', JSON.stringify(streakData));
+      }
+
+      wasYesterday(dateStr) {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        return dateStr === yesterday.toDateString();
+      }
+
+      initializeCard(cardId) {
+        if (!this.cards[cardId]) {
+          this.cards[cardId] = {
+            stage: 'new', // new, learning, review, relearning
+            interval: 0,
+            intervalIndex: 0,
+            nextReview: new Date().toISOString(),
+            lastReview: null,
+            reviewCount: 0,
+            correctCount: 0,
+            incorrectCount: 0,
+            addedDate: new Date().toISOString()
+          };
+        }
+        return this.cards[cardId];
+      }
+
+      getCardState(cardId) {
+        return this.cards[cardId] || this.initializeCard(cardId);
+      }
+
+      getDueCards() {
+        const now = new Date();
+        const dueCards = [];
+        
+        for (const [cardId, cardData] of Object.entries(this.cards)) {
+          if (cardData.stage !== 'new') {
+            const nextReview = new Date(cardData.nextReview);
+            if (nextReview <= now) {
+              dueCards.push(cardId);
+            }
+          }
+        }
+        
+        return dueCards;
+      }
+
+      getNewCards(limit) {
+        const newCards = [];
+        const allCardIds = decks["Master"].map((_, index) => index.toString());
+        
+        for (const cardId of allCardIds) {
+          if (!this.cards[cardId] || this.cards[cardId].stage === 'new') {
+            newCards.push(cardId);
+            if (newCards.length >= limit) break;
+          }
+        }
+        
+        return newCards;
+      }
+
+      getTodayStats() {
+        const dueCards = this.getDueCards();
+        const allCardIds = decks["Master"].map((_, index) => index.toString());
+        const newAvailable = allCardIds.filter(id => 
+          !this.cards[id] || this.cards[id].stage === 'new'
+        ).length;
+        
+        const learned = Object.values(this.cards).filter(c => 
+          c.stage === 'review' || c.intervalIndex >= 2
+        ).length;
+        
+        const totalReviews = Object.values(this.cards).reduce((sum, c) => 
+          sum + c.reviewCount, 0
+        );
+
+        return {
+          due: dueCards.length,
+          newAvailable: newAvailable,
+          learned: learned,
+          totalReviews: totalReviews,
+          streak: this.streak
+        };
+      }
+
+      recordAnswer(cardId, correct, timeSpent = 0) {
+        const card = this.getCardState(cardId);
+        card.lastReview = new Date().toISOString();
+        card.reviewCount++;
+
+        if (correct) {
+          card.correctCount++;
+          
+          if (card.stage === 'new' || card.stage === 'relearning') {
+            card.stage = 'learning';
+          }
+          
+          // Move to next interval
+          if (card.intervalIndex < this.settings.intervals.length - 1) {
+            card.intervalIndex++;
+          }
+          
+          // If card has been reviewed successfully multiple times, mark as review stage
+          if (card.intervalIndex >= 2) {
+            card.stage = 'review';
+          }
+          
+          // Calculate next review date
+          const interval = this.settings.intervals[card.intervalIndex];
+          const nextReview = new Date();
+          nextReview.setDate(nextReview.getDate() + interval);
+          card.nextReview = nextReview.toISOString();
+          card.interval = interval;
+          
+        } else {
+          card.incorrectCount++;
+          
+          // Reset interval for incorrect answers
+          if (card.stage === 'review') {
+            card.stage = 'relearning';
+          }
+          card.intervalIndex = 0;
+          card.interval = this.settings.intervals[0];
+          
+          // Schedule for review tomorrow
+          const nextReview = new Date();
+          nextReview.setDate(nextReview.getDate() + 1);
+          card.nextReview = nextReview.toISOString();
+        }
+
+        this.cards[cardId] = card;
+        this.saveToStorage();
+        
+        return card;
+      }
+
+      getSessionCards(mode = 'review') {
+        if (mode === 'practice') {
+          // For practice mode, return random cards
+          const allCardIds = decks["Master"].map((_, index) => index.toString());
+          return this.shuffleArray(allCardIds).slice(0, 50);
+        }
+
+        // For review mode, get due cards and new cards
+        const dueCards = this.getDueCards();
+        const newCards = this.getNewCards(this.settings.newCardsPerDay);
+        
+        // Combine and limit
+        let sessionCards = [...dueCards];
+        const remainingSlots = Math.max(0, 
+          this.settings.reviewCardsPerDay - dueCards.length
+        );
+        sessionCards = sessionCards.concat(newCards.slice(0, remainingSlots));
+        
+        return this.shuffleArray(sessionCards);
+      }
+
+      shuffleArray(array) {
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+      }
+
+      resetAllProgress() {
+        if (confirm('Are you absolutely sure? This will delete all your learning progress!')) {
+          localStorage.removeItem('lexiconClashSRS');
+          localStorage.removeItem('lexiconStreak');
+          this.cards = {};
+          this.streak = 0;
+          this.saveToStorage();
+          location.reload();
+        }
+      }
+    }
+
+    // ===== GAME STATE VARIABLES =====
+    let srs = null;
     let decks = {};
     let currentDeck = [];
     let currentCard;
-    let currentCardIndex = 0; // New variable for sequential progression
+    let currentCardId;
+    let currentCardIndex = 0;
+    let sessionCards = [];
     let usedCards = [];
     let missedAnswers = [];
     let timer;
@@ -78,7 +988,11 @@
     let correctCount = 0;
     let wrongCount = 0;
     let isPaused = false;
+    let gameMode = null;
+    let sessionMode = 'review'; // 'review' or 'practice'
 
+    // ===== INITIALIZATION =====
+    // Load vocabulary deck
     fetch('master_deck_cleaned.json?v=' + Date.now())
     .then(res => {
       if (!res.ok) throw new Error("HTTP error " + res.status);
@@ -86,67 +1000,509 @@
     })
     .then(data => {
       decks["Master"] = data;
-      document.getElementById("startButton").disabled = false;
+      srs = new SpacedRepetitionSystem();
+      updateDashboard();
     })
     .catch(err => {
       alert("Failed to load deck: " + err.message);
     });
 
+    // ===== DASHBOARD FUNCTIONS =====
+    function updateDashboard() {
+      if (!srs) return;
+      
+      const stats = srs.getTodayStats();
+      
+      document.getElementById('dueCount').textContent = stats.due;
+      document.getElementById('newCount').textContent = Math.min(stats.newAvailable, srs.settings.newCardsPerDay);
+      document.getElementById('learnedCount').textContent = stats.learned;
+      document.getElementById('totalReviewCount').textContent = stats.totalReviews;
+      document.getElementById('streakCount').textContent = stats.streak;
+      
+      // Update progress bar
+      const totalForToday = stats.due + Math.min(stats.newAvailable, srs.settings.newCardsPerDay);
+      const progressPercent = totalForToday > 0 ? 0 : 100;
+      document.getElementById('progressBar').style.width = progressPercent + '%';
+      document.getElementById('progressText').textContent = `0 / ${totalForToday}`;
+      
+      // Enable/disable review button
+      document.getElementById('startReviewButton').disabled = totalForToday === 0;
+      if (totalForToday === 0) {
+        document.getElementById('startReviewButton').textContent = '✅ All Done for Today!';
+      }
+    }
+
+    function backToDashboard() {
+      document.getElementById('modeScreen').style.display = 'none';
+      document.getElementById('summaryScreen').style.display = 'none';
+      document.getElementById('gameScreen').style.display = 'none';
+      document.getElementById('dashboardScreen').style.display = 'block';
+      updateDashboard();
+    }
+
+    // ===== MODE SELECTION =====
+    function showModeSelection() {
+      sessionMode = 'review';
+      sessionCards = srs.getSessionCards('review');
+      
+      if (sessionCards.length === 0) {
+        alert('No cards due for review! Try Practice Mode instead.');
+        return;
+      }
+      
+      document.getElementById('dashboardScreen').style.display = 'none';
+      document.getElementById('modeScreen').style.display = 'block';
+      
+      // Reset mode selection
+      gameMode = null;
+      document.getElementById('multipleMode').classList.remove('selected');
+      document.getElementById('typingMode').classList.remove('selected');
+      document.getElementById('playButton').disabled = true;
+    }
+
+    function startPracticeMode() {
+      sessionMode = 'practice';
+      sessionCards = srs.getSessionCards('practice');
+      
+      document.getElementById('dashboardScreen').style.display = 'none';
+      document.getElementById('modeScreen').style.display = 'block';
+      
+      // Reset mode selection
+      gameMode = null;
+      document.getElementById('multipleMode').classList.remove('selected');
+      document.getElementById('typingMode').classList.remove('selected');
+      document.getElementById('playButton').disabled = true;
+    }
+
+    function selectMode(mode) {
+      gameMode = mode;
+      
+      // Update visual selection
+      document.getElementById('multipleMode').classList.remove('selected');
+      document.getElementById('typingMode').classList.remove('selected');
+      
+      if (mode === 'multiple') {
+        document.getElementById('multipleMode').classList.add('selected');
+      } else {
+        document.getElementById('typingMode').classList.add('selected');
+      }
+      
+      document.getElementById('playButton').disabled = false;
+    }
+
+    // ===== GAME FUNCTIONS =====
     function startGame() {
       if (!decks["Master"] || decks["Master"].length === 0) {
         alert("Deck not loaded yet. Please wait.");
         return;
       }
 
-      document.getElementById("summaryScreen").style.display = "none";
+      if (!gameMode) {
+        alert("Please select a game mode.");
+        return;
+      }
 
-      baseTimeLimit = 25;
+      // Update streak if this is the first review today
+      if (sessionMode === 'review') {
+        const streakData = localStorage.getItem('lexiconStreak');
+        const today = new Date().toDateString();
+        
+        if (!streakData || JSON.parse(streakData).lastReview !== today) {
+          srs.streak = (srs.streak || 0) + 1;
+          srs.updateStreak();
+        }
+      }
+
+      // Reset game state
+      baseTimeLimit = gameMode === 'typing' ? 30 : 25;
       currentDeck = decks["Master"];
       playerHealth = 20;
-      currentCardIndex = 0; // Reset index for sequential progression
+      currentCardIndex = 0;
       usedCards = [];
       missedAnswers = [];
       correctCount = 0;
       wrongCount = 0;
       isPaused = false;
 
-      document.getElementById("startScreen").style.display = "none";
-      document.getElementById("gameScreen").style.display = "block";
-      document.getElementById("pausedOverlay").style.display = "none";
-      document.getElementById("pauseButton").textContent = "Pause";
+      // Hide other screens and show game screen
+      document.getElementById('modeScreen').style.display = 'none';
+      document.getElementById('gameScreen').style.display = 'block';
+      document.getElementById('pausedOverlay').style.display = 'none';
+      document.getElementById('pauseButton').textContent = 'Pause';
+      
+      // Show appropriate answer interface
+      if (gameMode === 'multiple') {
+        document.getElementById('answers').style.display = 'grid';
+        document.getElementById('typeAnswerContainer').style.display = 'none';
+      } else {
+        document.getElementById('answers').style.display = 'none';
+        document.getElementById('typeAnswerContainer').style.display = 'block';
+      }
+      
       showQuestion();
+    }
+
+    function showQuestion() {
+      // Adjust time limit based on difficulty progression
+      let minTime = gameMode === 'typing' ? 10 : 5;
+      
+      if (usedCards.length % 25 === 0 && usedCards.length !== 0 && baseTimeLimit > minTime) {
+        baseTimeLimit = Math.max(baseTimeLimit - 5, minTime);
+      }
+
+      const feedback = document.getElementById('feedback');
+      if (feedback) feedback.textContent = '';
+
+      // Check if we've completed all cards for this session
+      if (currentCardIndex >= sessionCards.length || playerHealth <= 0) {
+        endGame(playerHealth <= 0 ? '💀 Game Over!' : '🎉 Session Complete!');
+        return;
+      }
+
+      // Get next card from session
+      currentCardId = sessionCards[currentCardIndex];
+      currentCard = currentDeck[parseInt(currentCardId)];
+      currentCardIndex++;
+      usedCards.push(currentCard);
+
+      // Display card stage if in review mode
+      if (sessionMode === 'review') {
+        const cardState = srs.getCardState(currentCardId);
+        const stageDisplay = document.getElementById('cardStageDisplay');
+        let stageBadge = '';
+        
+        switch(cardState.stage) {
+          case 'new':
+            stageBadge = '<span class="card-stage new">NEW</span>';
+            break;
+          case 'learning':
+            stageBadge = '<span class="card-stage learning">LEARNING</span>';
+            break;
+          case 'review':
+            stageBadge = '<span class="card-stage review">REVIEW</span>';
+            break;
+          case 'relearning':
+            stageBadge = '<span class="card-stage relearning">RELEARNING</span>';
+            break;
+        }
+        
+        if (stageDisplay) stageDisplay.innerHTML = stageBadge;
+      } else {
+        const stageDisplay = document.getElementById('cardStageDisplay');
+        if (stageDisplay) stageDisplay.innerHTML = '<span class="card-stage" style="background: #9C27B0; color: white;">PRACTICE</span>';
+      }
+
+      // Display question
+      const questionEl = document.getElementById('question');
+      if (questionEl) questionEl.textContent = currentCard.english;
+
+      if (gameMode === 'multiple') {
+        setupMultipleChoice();
+      } else {
+        setupTypingMode();
+      }
+
+      updateHealth();
+      timeLeft = baseTimeLimit;
+      startTimer();
+    }
+
+    function setupMultipleChoice() {
+      const remainingDeck = currentDeck.filter(card => card !== currentCard);
+      shuffle(remainingDeck);
+      const options = remainingDeck.slice(0, 3);
+      options.push(currentCard);
+      shuffle(options);
+
+      const answersDiv = document.getElementById('answers');
+      if (answersDiv) {
+        answersDiv.innerHTML = '';
+        options.forEach(opt => {
+          const btn = document.createElement('div');
+          btn.className = 'answer';
+          btn.textContent = opt.spanish;
+          btn.onclick = () => checkAnswer(opt.spanish);
+          answersDiv.appendChild(btn);
+        });
+      }
+    }
+
+    function setupTypingMode() {
+      const input = document.getElementById('typeAnswerInput');
+      if (input) {
+        input.value = '';
+        input.className = '';
+        input.disabled = false;
+        input.focus();
+        
+        // Remove old event listener and add new one
+        input.onkeypress = function(e) {
+          if (e.key === 'Enter' && !isPaused) {
+            submitTypedAnswer();
+          }
+        };
+      }
+    }
+
+    function submitTypedAnswer() {
+      if (isPaused) return;
+      
+      const input = document.getElementById('typeAnswerInput');
+      const typedAnswer = input.value.trim();
+      
+      if (!typedAnswer) {
+        const feedback = document.getElementById('feedback');
+        if (feedback) feedback.textContent = 'Please type an answer!';
+        return;
+      }
+      
+      checkAnswer(typedAnswer);
+    }
+
+    function normalizeAnswer(text) {
+      // Remove accents and convert to lowercase for comparison
+      return text.toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[.,!?¿¡;:]/g, '')
+        .trim();
+    }
+
+    function checkAnswer(selected) {
+      if (isPaused) return;
+
+      clearInterval(timer);
+      const feedback = document.getElementById('feedback');
+      
+      let playerCorrect = false;
+      
+      if (gameMode === 'typing') {
+        // For typing mode, check with normalization for accents
+        const normalizedSelected = normalizeAnswer(selected);
+        const normalizedCorrect = normalizeAnswer(currentCard.spanish);
+        
+        // Check exact match first, then normalized match
+        playerCorrect = (selected === currentCard.spanish) || 
+                       (normalizedSelected === normalizedCorrect);
+        
+        // Visual feedback for input
+        const input = document.getElementById('typeAnswerInput');
+        if (input) {
+          input.disabled = true;
+          input.className = playerCorrect ? 'correct' : 'incorrect';
+        }
+      } else {
+        // For multiple choice, exact match
+        playerCorrect = selected === currentCard.spanish;
+      }
+
+      // Record answer in SRS if in review mode
+      if (sessionMode === 'review') {
+        srs.recordAnswer(currentCardId, playerCorrect, baseTimeLimit - timeLeft);
+      }
+
+      if (playerCorrect) {
+        correctCount++;
+        if (feedback) {
+          if (gameMode === 'typing' && normalizeAnswer(selected) === normalizeAnswer(currentCard.spanish) 
+              && selected !== currentCard.spanish) {
+            feedback.innerHTML = `✅ Correct! Note: The exact spelling is "${currentCard.spanish}"`;
+          } else {
+            feedback.innerHTML = '✅ Excellent! You got it right!';
+          }
+        }
+      } else {
+        wrongCount++;
+        playerHealth -= 2;
+        
+        missedAnswers.push({
+          english: currentCard.english,
+          spanish: currentCard.spanish,
+          selectedAnswer: selected,
+          reason: 'wrong_answer'
+        });
+        
+        if (feedback) {
+          if (gameMode === 'typing') {
+            feedback.innerHTML = `❌ Incorrect! The correct answer was "${currentCard.spanish}". You typed "${selected}". You take 2 damage.`;
+          } else {
+            feedback.innerHTML = `❌ Wrong! The correct answer was "${currentCard.spanish}". You take 2 damage.`;
+          }
+        }
+      }
+
+      updateHealth();
+      updateProgress();
+      
+      if (gameMode === 'multiple') {
+        disableAnswers();
+      }
+      
+      setTimeout(checkGameEndOrContinue, playerCorrect ? 1500 : 2500);
+    }
+
+    function updateProgress() {
+      const progressEl = document.getElementById('progress');
+      if (progressEl) {
+        const modeText = sessionMode === 'practice' ? 'Practice Mode' : 'Review Mode';
+        progressEl.textContent = `Cards: ${currentCardIndex} / ${sessionCards.length} | ${modeText} | ${gameMode === 'typing' ? 'Type Answer' : 'Multiple Choice'}`;
+      }
+    }
+
+    function checkGameEndOrContinue() {
+      if (playerHealth <= 0) {
+        endGame('💀 Game Over! Your health reached 0.');
+      } else if (currentCardIndex >= sessionCards.length) {
+        endGame('🎉 Session Complete!');
+      } else {
+        showQuestion();
+      }
+    }
+
+    function endGame(reason) {
+      clearInterval(timer);
+      document.getElementById('gameScreen').style.display = 'none';
+      document.getElementById('summaryScreen').style.display = 'block';
+
+      const totalAnswered = correctCount + wrongCount;
+      const accuracy = totalAnswered > 0 ? Math.round((correctCount / totalAnswered) * 100) : 0;
+      const modeText = gameMode === 'typing' ? 'Type Answer Mode' : 'Multiple Choice Mode';
+      const sessionText = sessionMode === 'practice' ? 'Practice Session' : 'Review Session';
+
+      const statsHTML = `
+        <p style="font-size: 1.3em; color: #764ba2; margin-bottom: 20px;">${reason}</p>
+        <p style="color: #666; margin-bottom: 20px;">${sessionText} - ${modeText}</p>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Cards Reviewed</div>
+            <div class="stat-value">${usedCards.length}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Accuracy</div>
+            <div class="stat-value">${accuracy}%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Correct Answers</div>
+            <div class="stat-value" style="color: #4CAF50;">${correctCount}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Wrong Answers</div>
+            <div class="stat-value" style="color: #F44336;">${wrongCount}</div>
+          </div>
+        </div>
+        ${sessionMode === 'review' ? '<p style="margin-top: 20px; color: #4CAF50;">✅ Progress saved! Cards rescheduled based on performance.</p>' : '<p style="margin-top: 20px; color: #9C27B0;">Practice complete! (No progress saved)</p>'}
+      `;
+
+      document.getElementById('summaryStats').innerHTML = statsHTML;
+
+      if (missedAnswers.length > 0) {
+        document.getElementById('missedAnswers').style.display = 'block';
+        const missedHTML = missedAnswers.map(item => {
+          let selectedText = item.selectedAnswer ? ` (You ${gameMode === 'typing' ? 'typed' : 'selected'}: "${item.selectedAnswer}")` : '';
+          return `
+            <div class="missed-item">
+              <strong>${item.english}</strong> → <strong style="color: #4CAF50;">${item.spanish}</strong>
+              <br><small style="color: #666;">❌ Wrong answer${selectedText}</small>
+            </div>
+          `;
+        }).join('');
+        document.getElementById('missedList').innerHTML = missedHTML;
+      } else {
+        document.getElementById('missedAnswers').style.display = 'none';
+      }
+    }
+
+    // ===== HELPER FUNCTIONS =====
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function startTimer() {
+      if (isPaused) return;
+
+      timeLeft = timeLeft || baseTimeLimit;
+      const timerEl = document.getElementById('timer');
+      if (timerEl) timerEl.textContent = `${timeLeft}`;
+      
+      timer = setInterval(() => {
+        if (isPaused) return;
+
+        timeLeft--;
+        if (timerEl) timerEl.textContent = `${timeLeft}`;
+        
+        if (timeLeft === 0) {
+          clearInterval(timer);
+          wrongCount++;
+          playerHealth -= 2;
+          
+          // Record as incorrect in SRS if in review mode
+          if (sessionMode === 'review') {
+            srs.recordAnswer(currentCardId, false, baseTimeLimit);
+          }
+          
+          missedAnswers.push({
+            english: currentCard.english,
+            spanish: currentCard.spanish,
+            reason: 'timeout'
+          });
+          
+          const feedback = document.getElementById('feedback');
+          if (feedback) feedback.textContent = '⛔ Time\'s up! You take 2 damage.';
+          updateHealth();
+          updateProgress();
+          
+          if (gameMode === 'multiple') {
+            disableAnswers();
+          } else {
+            document.getElementById('typeAnswerInput').disabled = true;
+          }
+          
+          setTimeout(checkGameEndOrContinue, 2000);
+        }
+      }, 1000);
     }
 
     function togglePause() {
       isPaused = !isPaused;
-      const pauseButton = document.getElementById("pauseButton");
-      const pausedOverlay = document.getElementById("pausedOverlay");
+      const pauseButton = document.getElementById('pauseButton');
+      const pausedOverlay = document.getElementById('pausedOverlay');
 
       if (isPaused) {
         clearInterval(timer);
-        pauseButton.textContent = "Resume";
-        pausedOverlay.style.display = "flex";
-        disableAnswers();
+        pauseButton.textContent = 'Resume';
+        pausedOverlay.style.display = 'flex';
+        if (gameMode === 'multiple') {
+          disableAnswers();
+        } else {
+          document.getElementById('typeAnswerInput').disabled = true;
+        }
       } else {
-        pauseButton.textContent = "Pause";
-        pausedOverlay.style.display = "none";
-        enableAnswers();
+        pauseButton.textContent = 'Pause';
+        pausedOverlay.style.display = 'none';
+        if (gameMode === 'multiple') {
+          enableAnswers();
+        } else {
+          document.getElementById('typeAnswerInput').disabled = false;
+          document.getElementById('typeAnswerInput').focus();
+        }
         startTimer();
       }
     }
 
     function stopGame() {
-      if (confirm("Are you sure you want to stop the game? Your progress will be lost.")) {
+      if (confirm('Are you sure you want to stop the game? Your progress will be saved but this session will end.')) {
         clearInterval(timer);
         isPaused = false;
-        document.getElementById("pausedOverlay").style.display = "none";
-        endGame('Game stopped by player.');
+        document.getElementById('pausedOverlay').style.display = 'none';
+        endGame('Session stopped by player.');
       }
     }
 
     function updateHealth() {
       const healthBarFill = document.getElementById('health-bar-fill');
-      const progressEl = document.getElementById('progress');
       
       const maxHealth = 20; 
       const healthPercentage = (playerHealth / maxHealth) * 100;
@@ -162,204 +1518,46 @@
           healthBarFill.style.backgroundColor = '#F44336';
         }
       }
-
-      if (progressEl) progressEl.textContent = `Cards Completed: ${usedCards.length} / ${currentDeck.length}`;
-    }
-
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-    }
-
-    function startTimer() {
-      if (isPaused) return;
-
-      timeLeft = timeLeft || baseTimeLimit;
-      const timerEl = document.getElementById('timer');
-      if (timerEl) timerEl.textContent = `${timeLeft}`;
-      timer = setInterval(() => {
-        if (isPaused) return;
-
-        timeLeft--;
-        if (timerEl) timerEl.textContent = `${timeLeft}`;
-        if (timeLeft === 0) {
-          clearInterval(timer);
-          wrongCount++;
-          playerHealth -= 2;
-          
-          missedAnswers.push({
-            english: currentCard.english,
-            spanish: currentCard.spanish,
-            reason: "timeout"
-          });
-          
-          const feedback = document.getElementById('feedback');
-          if (feedback) feedback.textContent = "⛔ Time's up! You take 2 damage.";
-          updateHealth();
-          disableAnswers();
-          setTimeout(checkGameEndOrContinue, 2000);
-        }
-      }, 1000);
-    }
-
-    function showQuestion() {
-      if (isPaused) return;
-
-      let minTime = 5;
-
-      if (usedCards.length % 25 === 0 && usedCards.length !== 0 && baseTimeLimit > minTime) {
-        baseTimeLimit = Math.max(baseTimeLimit - 5, minTime);
-      }
-
-      const feedback = document.getElementById('feedback');
-      if (feedback) feedback.textContent = "";
-
-      // Check if we've completed all cards using the index
-      if (currentCardIndex >= currentDeck.length) {
-        endGame("🎉 You've completed the deck!");
-        return;
-      }
-
-      // Sequential selection: pick card by index
-      currentCard = currentDeck[currentCardIndex];
-      currentCardIndex++;
-      usedCards.push(currentCard);
-
-      const remainingDeck = currentDeck.filter(card => card !== currentCard);
-      shuffle(remainingDeck);
-      const options = remainingDeck.slice(0, 3);
-      options.push(currentCard);
-      shuffle(options);
-
-      const questionEl = document.getElementById('question');
-      const answersDiv = document.getElementById('answers');
-      if (questionEl) questionEl.textContent = `${currentCard.english}`;
-      if (answersDiv) answersDiv.innerHTML = "";
-
-      options.forEach(opt => {
-        const btn = document.createElement('div');
-        btn.className = 'answer';
-        btn.textContent = opt.spanish;
-        btn.onclick = () => checkAnswer(opt.spanish);
-        answersDiv.appendChild(btn);
-      });
-
-      updateHealth();
-      timeLeft = baseTimeLimit;
-      startTimer();
-    }
-
-    function checkAnswer(selected) {
-      if (isPaused) return;
-
-      clearInterval(timer);
-      const feedback = document.getElementById('feedback');
-      let playerCorrect = selected === currentCard.spanish;
-
-      if (playerCorrect) {
-        correctCount++;
-        if (feedback) feedback.innerHTML = "✅ You were correct.";
-      } else {
-        wrongCount++;
-        playerHealth -= 2;
-        
-        missedAnswers.push({
-          english: currentCard.english,
-          spanish: currentCard.spanish,
-          selectedAnswer: selected,
-          reason: "wrong_answer"
-        });
-        
-        if (feedback) feedback.innerHTML = `❌ Wrong! The correct answer was "${currentCard.spanish}". You take 2 damage.`;
-      }
-
-      updateHealth();
-      disableAnswers();
-      setTimeout(checkGameEndOrContinue, 2000);
     }
 
     function disableAnswers() {
-      const buttons = document.querySelectorAll('.answer');
-      buttons.forEach(btn => btn.onclick = null);
+      const answers = document.querySelectorAll('.answer');
+      answers.forEach(a => a.classList.add('disabled'));
     }
 
     function enableAnswers() {
-      if (isPaused || !currentCard) return;
-
-      const buttons = document.querySelectorAll('.answer');
-      buttons.forEach(btn => {
-        const spanish = btn.textContent;
-        btn.onclick = () => checkAnswer(spanish);
-      });
+      const answers = document.querySelectorAll('.answer');
+      answers.forEach(a => a.classList.remove('disabled'));
     }
 
-    function checkGameEndOrContinue() {
-      if (isPaused) return;
-
-      if (playerHealth <= 0) {
-        endGame('Game Over! You lost.');
-      } else {
-        showQuestion();
+    // ===== SETTINGS FUNCTIONS =====
+    function openSettings() {
+      if (srs) {
+        document.getElementById('newCardsLimit').value = srs.settings.newCardsPerDay;
+        document.getElementById('reviewCardsLimit').value = srs.settings.reviewCardsPerDay;
       }
+      document.getElementById('settingsModal').style.display = 'flex';
     }
 
-    function endGame(message) {
-      clearInterval(timer);
-      isPaused = false;
+    function closeSettings() {
+      document.getElementById('settingsModal').style.display = 'none';
+    }
 
-      const gameScreen = document.getElementById("gameScreen");
-      const summaryScreen = document.getElementById("summaryScreen");
-      const summaryStats = document.getElementById("summaryStats");
-      const pausedOverlay = document.getElementById("pausedOverlay");
+    function saveSettings() {
+      if (srs) {
+        srs.settings.newCardsPerDay = parseInt(document.getElementById('newCardsLimit').value);
+        srs.settings.reviewCardsPerDay = parseInt(document.getElementById('reviewCardsLimit').value);
+        srs.saveToStorage();
+      }
+      closeSettings();
+      updateDashboard();
+    }
 
-      if (gameScreen) gameScreen.style.display = "none";
-      if (summaryScreen) summaryScreen.style.display = "block";
-      if (pausedOverlay) pausedOverlay.style.display = "none";
-
-      const total = correctCount + wrongCount;
-      const accuracy = total ? Math.round((correctCount / total) * 100) : 0;
-
-      summaryStats.innerHTML = `
-        <p><strong>${message}</strong></p>
-        <p>Correct Answers: ${correctCount}</p>
-        <p>Wrong Answers: ${wrongCount}</p>
-        <p>Accuracy: ${accuracy}%</p>
-        <p>Mode: Survival</p>
-        <p>Final Timer Speed: ${baseTimeLimit} seconds</p>
-      `;
-
-      const missedAnswersDiv = document.getElementById("missedAnswers");
-      const missedListDiv = document.getElementById("missedList");
-      
-      if (missedAnswers.length > 0) {
-        missedAnswersDiv.style.display = "block";
-        missedListDiv.innerHTML = "";
-        
-        missedAnswers.forEach(missed => {
-          const missedItem = document.createElement('div');
-          missedItem.className = 'missed-item';
-          
-          let reasonText = "";
-          if (missed.reason === "timeout") {
-            reasonText = " (⏰ Timed out)";
-          } else if (missed.selectedAnswer) {
-            reasonText = ` (❌ You answered: ${missed.selectedAnswer})`;
-          }
-          
-          missedItem.innerHTML = `
-            <span class="missed-english">${missed.english}</span>
-            <span class="missed-spanish">${missed.spanish}${reasonText}</span>
-          `;
-          
-          missedListDiv.appendChild(missedItem);
-        });
-      } else {
-        missedAnswersDiv.style.display = "none";
+    function resetProgress() {
+      if (srs) {
+        srs.resetAllProgress();
       }
     }
   </script>
 </body>
-
 </html>
