@@ -17,7 +17,7 @@
   },
   {
     "english": "My name is...",
-    "spanish": "Me llamo..."
+    "spanish": "Me llamo"
   },
   {
     "english": "How are you?",
@@ -37,7 +37,7 @@
   },
   {
     "english": "I'm fine",
-    "spanish": "Estoy bien, gracias"
+    "spanish": "Estoy bien gracias"
   },
   {
     "english": "Mother",
@@ -57,7 +57,7 @@
   },
   {
     "english": "Friend",
-    "spanish": "Amigo / Amiga"
+    "spanish": "Amigo"
   },
   {
     "english": "Family",
@@ -65,7 +65,7 @@
   },
   {
     "english": "Child",
-    "spanish": "Niño / Niña"
+    "spanish": "Niño"
   },
   {
     "english": "Man",
@@ -77,7 +77,7 @@
   },
   {
     "english": "Teacher",
-    "spanish": "Maestro / Maestra"
+    "spanish": "Maestro"
   },
   {
     "english": "One",
@@ -297,7 +297,7 @@
   },
   {
     "english": "Teacher",
-    "spanish": "Maestro / Maestra"
+    "spanish": "Maestro"
   },
   {
     "english": "Student",
@@ -529,11 +529,11 @@
   },
   {
     "english": "I'm sick",
-    "spanish": "Estoy enfermo/a"
+    "spanish": "Estoy enfermo"
   },
   {
     "english": "Doctor",
-    "spanish": "Doctor / Doctora"
+    "spanish": "Doctor"
   },
   {
     "english": "Hospital",
@@ -565,7 +565,7 @@
   },
   {
     "english": "Ticket",
-    "spanish": "Boleto / Billete"
+    "spanish": "Boleto"
   },
   {
     "english": "Luggage",
@@ -577,7 +577,7 @@
   },
   {
     "english": "Reservation",
-    "spanish": "Reservación / Reserva"
+    "spanish": "Reservación"
   },
   {
     "english": "Map",
@@ -597,7 +597,7 @@
   },
   {
     "english": "I'm lost",
-    "spanish": "Estoy perdido/a"
+    "spanish": "Estoy perdido"
   },
   {
     "spanish": "comer",
@@ -1161,7 +1161,7 @@
   },
   {
     "spanish": "cuidado",
-    "english": "watch out!"
+    "english": "watch out"
   },
   {
     "spanish": "el amor",
@@ -2523,11 +2523,7 @@
     "spanish": "atacar",
     "english": "to attack"
   },
-  {
-    "spanish": "el culo",
-    "english": "ass"
-  },
-  {
+   {
     "spanish": "el pie",
     "english": "foot"
   },
@@ -4625,7 +4621,7 @@
   },
   {
     "spanish": "el apartamento",
-    "english": "flat"
+    "english": "apartment"
   },
   {
     "spanish": "disparar",
@@ -5825,7 +5821,7 @@
   },
   {
     "spanish": "recoger",
-    "english": "to pick up something previously left behind"
+    "english": "collect"
   },
   {
     "spanish": "la compra",
@@ -7264,10 +7260,6 @@
     "english": "hill"
   },
   {
-    "spanish": "la porquería",
-    "english": "crap"
-  },
-  {
     "spanish": "el terrorista",
     "english": "terrorist"
   },
@@ -7864,10 +7856,6 @@
     "english": "kidnapping"
   },
   {
-    "spanish": "secuestrar",
-    "english": "to kidnap"
-  },
-  {
     "spanish": "el casco",
     "english": "helmet"
   },
@@ -7890,10 +7878,6 @@
   {
     "spanish": "el cementerio",
     "english": "cemetery"
-  },
-  {
-    "spanish": "la prostituta",
-    "english": "prostitute"
   },
   {
     "spanish": "la consecuencia",
@@ -10555,10 +10539,7 @@
     "spanish": "desgraciadamente",
     "english": "unfortunately"
   },
-  {
-    "spanish": "el crack",
-    "english": "crack"
-  },
+  
   {
     "spanish": "el contenido",
     "english": "content"
@@ -10912,10 +10893,6 @@
     "english": "to toast"
   },
   {
-    "spanish": "el vito",
-    "english": "An Andalusian music style and dance"
-  },
-  {
     "spanish": "el torpedo",
     "english": "torpedo"
   },
@@ -11165,7 +11142,7 @@
   },
   {
     "spanish": "el pajarito",
-    "english": ": birdie"
+    "english": "birdie"
   },
   {
     "spanish": "la inspección",
@@ -11738,10 +11715,6 @@
   {
     "spanish": "la comprometida",
     "english": "fiancée"
-  },
-  {
-    "spanish": "el acoso",
-    "english": "molestation"
   },
   {
     "spanish": "acosar",
@@ -13028,10 +13001,6 @@
     "english": "to bill"
   },
   {
-    "spanish": "la escoria",
-    "english": "slag"
-  },
-  {
     "spanish": "la década",
     "english": "decade"
   },
@@ -13272,10 +13241,6 @@
     "english": "to replace"
   },
   {
-    "spanish": "la quiebra",
-    "english": "crack"
-  },
-  {
     "spanish": "la humillación",
     "english": "humiliation"
   },
@@ -13404,20 +13369,12 @@
     "english": "mattress"
   },
   {
-    "spanish": "chupar",
-    "english": "to suck"
-  },
-  {
     "spanish": "el bloqueo",
     "english": "blockade"
   },
   {
     "spanish": "el armamento",
     "english": "armament"
-  },
-  {
-    "spanish": "la virginidad",
-    "english": "virginity"
   },
   {
     "spanish": "el tornado",
@@ -14504,10 +14461,6 @@
     "english": "trajectory"
   },
   {
-    "spanish": "el señuelo",
-    "english": "stool pigeon"
-  },
-  {
     "spanish": "el roble",
     "english": "oak"
   },
@@ -14660,10 +14613,6 @@
     "english": "revenge"
   },
   {
-    "spanish": "el opio",
-    "english": "opium"
-  },
-  {
     "spanish": "el lote",
     "english": "lot"
   },
@@ -14678,10 +14627,6 @@
   {
     "spanish": "el aventón",
     "english": "ride"
-  },
-  {
-    "spanish": "el satanás",
-    "english": "devil"
   },
   {
     "spanish": "la rapidez",
@@ -15178,10 +15123,6 @@
   {
     "spanish": "el diputado",
     "english": "deputy"
-  },
-  {
-    "spanish": "la diarrea",
-    "english": "diarrhea"
   },
   {
     "spanish": "la conmoción",
