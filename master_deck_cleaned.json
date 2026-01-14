@@ -1064,10 +1064,6 @@
     "english": "head"
   },
   {
-    "spanish": "chico",
-    "english": "boy"
-  },
-  {
     "spanish": "chica",
     "english": "girl"
   },
@@ -1814,10 +1810,6 @@
   {
     "spanish": "suceder",
     "english": "to happen"
-  },
-  {
-    "spanish": "muchacho",
-    "english": "boy"
   },
   {
     "spanish": "jamás",
@@ -13793,7 +13785,7 @@
   },
   {
     "spanish": "mozo",
-    "english": "boy"
+    "english": "young man"
   },
   {
     "spanish": "manga",
