@@ -983,7 +983,7 @@
     let missedAnswers = [];
     let timer;
     let timeLeft;
-    let playerHealth = 20;
+    let playerHealth = 200;
     let baseTimeLimit = 25;
     let correctCount = 0;
     let wrongCount = 0;
@@ -1313,7 +1313,7 @@
         }
       } else {
         wrongCount++;
-        playerHealth -= 0;
+        playerHealth -= 2;
         
         missedAnswers.push({
           english: currentCard.english,
@@ -1561,4 +1561,5 @@
   </script>
 </body>
 </html>
+
 
